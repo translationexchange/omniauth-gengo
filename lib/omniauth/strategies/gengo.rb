@@ -5,42 +5,69 @@ module OmniAuth
     class Gengo < OmniAuth::Strategies::OAuth2
 
       option :client_options, {
-        :site           => 'https://api.gengo.com/v2',
-        :authorize_url  => 'https://gengo.com/oauth/authorize',
-        :token_url      => 'https://api.gengo.com/v2/oauth/token'
+          :site => 'https://api.gengo.com/v2',
+          :authorize_url => 'https://gengo.com/oauth/authenticate',
+          :token_url => 'https://api.gengo.com/oauth/token'
       }
-
       option :name, 'gengo'
 
       option :access_token_options, {
-        :header_format => 'OAuth %s',
-        :param_name => 'access_token'
+          :header_format => 'OAuth %s',
+          :param_name => 'access_token'
       }
-      
+
       option :authorize_options, [:scope, :display]
 
-      def request_phase
-        super
-      end
+      # # TODO: deal with situations when client declines the authorization
+      #
+      # # All this because Gengo does not return token in a standard form
+      # def build_access_token
+      #   params = {
+      #       :client_id => options.client_id,
+      #       :client_secret => options['secret_key']
+      #   }.merge(token_params.to_hash(:symbolize_keys => true))
+      #
+      #   params = {'grant_type' => 'authorization_code', 'auth_code' => request.params['code']}.merge(params)
+      #   access_token_opts = deep_symbolize(options.auth_token_params)
+      #
+      #   opts = {:raise_errors => false, :parse => params.delete(:parse)}
+      #   if client.options[:token_method] == :post
+      #     headers = params.delete(:headers)
+      #     opts[:body] = params
+      #     opts[:headers] =  {'Content-Type' => 'application/x-www-form-urlencoded'}
+      #     opts[:headers].merge!(headers) if headers
+      #   else
+      #     opts[:params] = params
+      #   end
+      #
+      #   response = client.request(client.options[:token_method], client.token_url, opts)
+      #   data = {
+      #       'access_token' => response.parsed['results']['access_token'],
+      #       'expires_in' => response.parsed['results']['expires'],
+      #   }
+      #
+      #   ::OAuth2::AccessToken.from_hash(client, data.merge(access_token_opts))
+      # end
+
 
       uid { raw_info['id'] }
-      
+
       info do
         prune!({
-          'id'             => raw_info['id'],
-          'name'           => raw_info['name'],
-          'first_name'     => raw_info['first_name'],
-          'last_name'      => raw_info['last_name'],
-          'email'          => raw_info['email'],
-          'gender'         => raw_info['gender'],
-          'mugshot'        => raw_info['mugshot']
-        })
+                   'id' => raw_info['id'],
+                   'name' => raw_info['name'],
+                   'first_name' => raw_info['first_name'],
+                   'last_name' => raw_info['last_name'],
+                   'email' => raw_info['email'],
+                   'gender' => raw_info['gender'],
+                   'mugshot' => raw_info['mugshot']
+               })
       end
-      
-      extra do 
-        { 'user' =>  prune!(raw_info) }
+
+      extra do
+        {'user' => prune!(raw_info)}
       end
-      
+
       def raw_info
         @raw_info ||= access_token.get('/account').parsed
       end
