@@ -54,13 +54,10 @@ module OmniAuth
 
       info do
         prune!({
-                   'id' => raw_info['id'],
-                   'name' => raw_info['name'],
-                   'first_name' => raw_info['first_name'],
-                   'last_name' => raw_info['last_name'],
                    'email' => raw_info['email'],
-                   'gender' => raw_info['gender'],
-                   'mugshot' => raw_info['mugshot']
+                   'full_name' => raw_info['full_name'],
+                   'display_name' => raw_info['display_name'],
+                   'language_code' => raw_info['language_code']
                })
       end
 
@@ -69,7 +66,7 @@ module OmniAuth
       end
 
       def raw_info
-        @raw_info ||= access_token.get('/account').parsed
+        @raw_info ||= access_token.get('/account/me').parsed
       end
 
       def authorize_params
